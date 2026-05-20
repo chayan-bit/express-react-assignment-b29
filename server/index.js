@@ -31,7 +31,7 @@ app.post("/api/auth/register", async (req, res) => {
     const user = await User.create({ username, password: hashedPassword });
 
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { _id: user._id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "30d" },
     );
@@ -58,7 +58,7 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { _id: user._id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "30d" },
     );
@@ -165,13 +165,13 @@ app.post("/api/puzzles/:id/rate", protect, async (req, res) => {
     if (!puzzle) return res.status(404).json({ message: "Puzzle not found" });
 
     const existingRatingIndex = puzzle.ratings.findIndex(
-      (rating) => rating.userId === userId,
+      (rating) => rating.user.toString() === userId.toString(),
     );
 
     if (existingRatingIndex >= 0) {
       puzzle.ratings[existingRatingIndex].score = score;
     } else {
-      puzzle.ratings.push({ userId, score });
+      puzzle.ratings.push({ user: userId, score });
       puzzle.ratingCount += 1;
     }
 
@@ -179,7 +179,7 @@ app.post("/api/puzzles/:id/rate", protect, async (req, res) => {
       (acc, curr) => acc + curr.score,
       0,
     );
-    puzzle.avgRating = (totalScore / puzzle.ratings.length).toFixed(1);
+    puzzle.avgRating = Number((totalScore / puzzle.ratings.length).toFixed(1));
 
     await puzzle.save();
     res.json({ message: "Rating saved!", avgRating: puzzle.avgRating });

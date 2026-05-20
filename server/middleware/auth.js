@@ -9,19 +9,16 @@ const protect = (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(" ")[1];
-
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
       req.user = decoded;
-
-      next();
+      return next();
     } catch (err) {
-      res.status(401).json({ error: "token failed" });
+      return res.status(401).json({ error: "token failed" });
     }
   }
 
   if (!token) {
-    res.status(401).json({ error: "no token provided" });
+    return res.status(401).json({ error: "no token provided" });
   }
 };
 
